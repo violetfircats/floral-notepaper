@@ -9,6 +9,7 @@ import {
 import {
   DEFAULT_TILE_COLOR,
   normalizeTileColor,
+  TRANSPARENT_TILE_COLOR,
 } from "../features/settings/tileColor";
 import { applyTheme, watchSystemTheme } from "../features/settings/theme";
 import { SlidingButtonGroup } from "./SlidingButtonGroup";
@@ -228,6 +229,13 @@ export function SettingsPanel({
                 spellCheck={false}
                 className="min-w-0 flex-1 h-8 px-2.5 rounded-lg bg-paper-warm/70 border border-paper-deep/40 text-[12px] font-mono text-ink-soft outline-none"
               />
+              <button
+                type="button"
+                onClick={() => setConfigValue("tileColor", TRANSPARENT_TILE_COLOR)}
+                className="h-8 px-2.5 rounded-lg border border-paper-deep/45 text-[11px] text-ink-faint hover:text-bamboo hover:bg-bamboo-mist/50 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                透明
+              </button>
               <button
                 type="button"
                 onClick={() => setConfigValue("tileColor", DEFAULT_TILE_COLOR)}

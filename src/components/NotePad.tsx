@@ -486,6 +486,7 @@ export function NotePad({
           color={tileColor}
           fontSize={surfaceFontSize}
           width="100%"
+          markdown
           className="h-full cursor-default"
           data-surface-mode={surfaceMode}
           data-context-menu="tile"
