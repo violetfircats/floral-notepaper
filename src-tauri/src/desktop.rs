@@ -531,6 +531,8 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error
             let mut config = store.load_config()?;
             config.tile_desktop_only = !config.tile_desktop_only;
             store.save_config(config.clone())?;
+            // Immediately apply to all open tile windows
+            apply_to_tile_windows(app, |w| w.set_always_on_top(!config.tile_desktop_only));
             let _ = app.emit("config-changed", config);
         }
         Some(TrayMenuAction::ToggleTileClickThrough) => {
@@ -538,6 +540,8 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error
             let mut config = store.load_config()?;
             config.tile_click_through = !config.tile_click_through;
             store.save_config(config.clone())?;
+            // Immediately apply to all open tile windows
+            apply_to_tile_windows(app, |w| w.set_ignore_cursor_events(config.tile_click_through));
             let _ = app.emit("config-changed", config);
         }
         Some(TrayMenuAction::ToggleTileAutoScroll) => {
@@ -555,6 +559,15 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error
     }
 
     Ok(())
+}
+
+/// Apply a window operation to all currently open tile windows
+fn apply_to_tile_windows(app: &AppHandle, op: impl Fn(&tauri::WebviewWindow)) {
+    for (_label, window) in app.webview_windows() {
+        if _label.starts_with("tile-") {
+            op(&window);
+        }
+    }
 }
 
 pub fn show_main_window(app: &AppHandle) -> Result<(), AppError> {
@@ -1091,7 +1104,8 @@ fn toggle_autostart(app: &AppHandle) -> Result<(), Box<dyn Error>> {
     let next_enabled = !config.autostart;
     apply_autostart(app, next_enabled)?;
     config.autostart = next_enabled;
-    store.save_config(config)?;
+    store.save_config(config.clone())?;
+    let _ = app.emit("config-changed", config);
     Ok(())
 }
 

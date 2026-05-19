@@ -259,10 +259,16 @@ export function Tile({
     // MutationObserver: catches DOM content changes → scrollHeight changes
     const mutationObs = new MutationObserver(check);
     mutationObs.observe(el, { childList: true, subtree: true, characterData: true });
+    // Visibility: window restored from background / brought to front
+    const onVisible = () => { requestAnimationFrame(check); };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
     return () => {
       clearTimeout(timer);
       resizeObs.disconnect();
       mutationObs.disconnect();
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
     };
   }, [autoScroll, content]);
 
@@ -275,13 +281,14 @@ export function Tile({
     let rafId: number;
     const SPEED = 20; // pixels per second
     const PAUSE_MS = 2000;
+    const MAX_DT = 0.5; // cap delta to prevent huge jumps after background throttle
 
     let lastTime = 0;
     let pauseUntil = 0;
 
     const animate = (time: number) => {
       if (lastTime === 0) lastTime = time;
-      const dt = (time - lastTime) / 1000;
+      const dt = Math.min((time - lastTime) / 1000, MAX_DT);
       lastTime = time;
 
       if (pauseUntil > 0 && time < pauseUntil) {
