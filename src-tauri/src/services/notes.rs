@@ -785,6 +785,30 @@ fn default_external_file_auto_save() -> bool {
     true
 }
 
+fn default_tile_desktop_only() -> bool {
+    false
+}
+
+fn default_tile_click_through() -> bool {
+    false
+}
+
+fn default_tile_allow_drag() -> bool {
+    true
+}
+
+fn default_tile_keep_on_screen() -> bool {
+    true
+}
+
+fn default_tile_save_position() -> bool {
+    true
+}
+
+fn default_tile_edge_snap() -> bool {
+    false
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
