@@ -3,6 +3,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import type { Components } from "react-markdown";
 import "katex/dist/katex.min.css";
@@ -49,76 +50,76 @@ interface MarkdownPreviewProps {
 }
 
 const remarkPlugins = [remarkGfm, remarkMath];
-const rehypePlugins = [rehypeKatex];
+const rehypePlugins = [rehypeRaw, rehypeKatex];
 
 const components: Components = {
-  h1: ({ children }) => (
-    <h1 className="text-[22px] font-display font-bold text-ink mt-6 mb-4 tracking-wide">
+  h1: ({ children, style, ...props }) => (
+    <h1 className="text-[22px] font-display font-bold text-ink mt-6 mb-4 tracking-wide" style={style} {...props}>
       {children}
     </h1>
   ),
-  h2: ({ children }) => (
-    <h2 className="text-[17px] font-display font-bold text-ink mt-7 mb-3 tracking-wide">
+  h2: ({ children, style, ...props }) => (
+    <h2 className="text-[17px] font-display font-bold text-ink mt-7 mb-3 tracking-wide" style={style} {...props}>
       {children}
     </h2>
   ),
-  h3: ({ children }) => (
-    <h3 className="text-[15px] font-display font-bold text-ink mt-5 mb-2 tracking-wide">
+  h3: ({ children, style, ...props }) => (
+    <h3 className="text-[15px] font-display font-bold text-ink mt-5 mb-2 tracking-wide" style={style} {...props}>
       {children}
     </h3>
   ),
-  h4: ({ children }) => (
-    <h4 className="text-[14px] font-display font-semibold text-ink mt-4 mb-2 tracking-wide">
+  h4: ({ children, style, ...props }) => (
+    <h4 className="text-[14px] font-display font-semibold text-ink mt-4 mb-2 tracking-wide" style={style} {...props}>
       {children}
     </h4>
   ),
-  p: ({ children }) => (
-    <p className="text-ink-soft leading-[1.9]">{children}</p>
+  p: ({ children, style, ...props }) => (
+    <p className="text-ink-soft leading-[1.9]" style={style} {...props}>{children}</p>
   ),
-  strong: ({ children }) => (
-    <strong className="font-semibold text-ink">{children}</strong>
+  strong: ({ children, style, ...props }) => (
+    <strong className="font-semibold text-ink" style={style} {...props}>{children}</strong>
   ),
-  em: ({ children }) => (
-    <em className="italic text-bamboo-light">{children}</em>
+  em: ({ children, style, ...props }) => (
+    <em className="italic text-bamboo-light" style={style} {...props}>{children}</em>
   ),
-  blockquote: ({ children }) => (
-    <blockquote className="border-l-2 border-bamboo/40 pl-4 my-3 text-ink-soft/80 italic leading-[1.9]">
+  blockquote: ({ children, style, ...props }) => (
+    <blockquote className="border-l-2 border-bamboo/40 pl-4 my-3 text-ink-soft/80 italic leading-[1.9]" style={style} {...props}>
       {children}
     </blockquote>
   ),
-  ul: ({ children }) => (
-    <ul className="ml-4 text-ink-soft leading-[1.9] list-disc list-outside marker:text-bamboo/40">
+  ul: ({ children, style, ...props }) => (
+    <ul className="ml-4 text-ink-soft leading-[1.9] list-disc list-outside marker:text-bamboo/40" style={style} {...props}>
       {children}
     </ul>
   ),
-  ol: ({ children }) => (
-    <ol className="ml-4 text-ink-soft leading-[1.9] list-decimal list-outside marker:text-bamboo/50 marker:font-mono marker:text-[12px]">
+  ol: ({ children, style, ...props }) => (
+    <ol className="ml-4 text-ink-soft leading-[1.9] list-decimal list-outside marker:text-bamboo/50 marker:font-mono marker:text-[12px]" style={style} {...props}>
       {children}
     </ol>
   ),
-  li: ({ children }) => (
-    <li className="text-ink-soft leading-[1.9]">{children}</li>
+  li: ({ children, style, ...props }) => (
+    <li className="text-ink-soft leading-[1.9]" style={style} {...props}>{children}</li>
   ),
   hr: () => (
     <hr className="my-6 border-none h-px bg-gradient-to-r from-transparent via-paper-deep to-transparent" />
   ),
-  code: ({ className, children }) => {
+  code: ({ className, children, style, ...props }) => {
     const isBlock = className?.startsWith("language-") || String(children).includes("\n");
     if (isBlock) {
       return (
-        <code className="text-[12px] font-mono text-ink-soft leading-[1.8] whitespace-pre">
+        <code className="text-[12px] font-mono text-ink-soft leading-[1.8] whitespace-pre" style={style} {...props}>
           {children}
         </code>
       );
     }
     return (
-      <code className="px-1.5 py-0.5 text-[12px] font-mono bg-paper-warm rounded text-bamboo">
+      <code className="px-1.5 py-0.5 text-[12px] font-mono bg-paper-warm rounded text-bamboo" style={style} {...props}>
         {children}
       </code>
     );
   },
   pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
-  a: ({ href, children }) => (
+  a: ({ href, children, style, ...props }) => (
     <a
       href={href}
       onClick={(e) => {
@@ -126,6 +127,8 @@ const components: Components = {
         if (href) openUrl(href);
       }}
       className="text-bamboo hover:text-bamboo-light underline underline-offset-2 cursor-pointer"
+      style={style}
+      {...props}
     >
       {children}
     </a>
@@ -135,22 +138,23 @@ const components: Components = {
       <table className="w-full text-[13px] border-collapse">{children}</table>
     </div>
   ),
-  th: ({ children }) => (
-    <th className="text-left px-3 py-1.5 border-b border-paper-deep/30 font-semibold text-ink text-[12px]">
+  th: ({ children, style, ...props }) => (
+    <th className="text-left px-3 py-1.5 border-b border-paper-deep/30 font-semibold text-ink text-[12px]" style={style} {...props}>
       {children}
     </th>
   ),
-  td: ({ children }) => (
-    <td className="px-3 py-1.5 border-b border-paper-deep/15 text-ink-soft">
+  td: ({ children, style, ...props }) => (
+    <td className="px-3 py-1.5 border-b border-paper-deep/15 text-ink-soft" style={style} {...props}>
       {children}
     </td>
   ),
-  input: ({ checked, ...props }) => (
+  input: ({ checked, style, ...props }) => (
     <input
       {...props}
       checked={checked}
       disabled
       className="mr-1.5 accent-bamboo"
+      style={style}
     />
   ),
 };

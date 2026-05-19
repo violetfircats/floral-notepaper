@@ -18,4 +18,10 @@ export interface AppConfig {
   fontSize: number;
   surfaceFontSize: number;
   externalFileAutoSave: boolean;
+  tileDesktopOnly: boolean;
+  tileClickThrough: boolean;
+  tileAllowDrag: boolean;
+  tileKeepOnScreen: boolean;
+  tileSavePosition: boolean;
+  tileEdgeSnap: boolean;
 }

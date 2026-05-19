@@ -181,6 +181,16 @@ async fn open_note_in_editor(app: AppHandle, note_id: String) -> Result<(), AppE
     Ok(())
 }
 
+#[tauri::command]
+fn set_tile_desktop_only(app: AppHandle, label: String, enabled: bool) -> Result<(), AppError> {
+    desktop::set_tile_desktop_only(&app, &label, enabled)
+}
+
+#[tauri::command]
+fn set_tile_click_through(app: AppHandle, label: String, enabled: bool) -> Result<(), AppError> {
+    desktop::set_tile_click_through(&app, &label, enabled)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -219,7 +229,9 @@ pub fn run() {
             open_notepad_window,
             recycle_notepad_window,
             open_tile_window,
-            open_note_in_editor
+            open_note_in_editor,
+            set_tile_desktop_only,
+            set_tile_click_through
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

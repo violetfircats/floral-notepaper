@@ -45,6 +45,18 @@ export function setCurrentWindowAlwaysOnTop(enabled: boolean): Promise<void> {
   return getCurrentWindow().setAlwaysOnTop(enabled);
 }
 
+export function setCurrentWindowIgnoreCursorEvents(enabled: boolean): Promise<void> {
+  return getCurrentWindow().setIgnoreCursorEvents(enabled);
+}
+
+export function setTileDesktopOnly(label: string, enabled: boolean): Promise<void> {
+  return invoke("set_tile_desktop_only", { label, enabled });
+}
+
+export function setTileClickThrough(label: string, enabled: boolean): Promise<void> {
+  return invoke("set_tile_click_through", { label, enabled });
+}
+
 export function startCurrentWindowDrag(): Promise<void> {
   return getCurrentWindow().startDragging();
 }

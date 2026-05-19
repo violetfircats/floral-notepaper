@@ -2,6 +2,7 @@ import chroma from "chroma-js";
 import type { CSSProperties, HTMLAttributes } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import type { Components } from "react-markdown";
 import {
   DEFAULT_TILE_COLOR,
@@ -72,89 +73,90 @@ function CornerMarks({ color }: { color: string }) {
 
 function tileMdComponents(): Components {
   return {
-    h1: ({ children }) => (
-      <h1 className="font-display font-bold mt-5 mb-3 tracking-wide" style={{ color: "var(--tile-accent-color)", fontSize: "calc(var(--tile-font-size) + 6px)" }}>
+    h1: ({ children, style, ...props }) => (
+      <h1 className="font-display font-bold mt-5 mb-3 tracking-wide" style={{ color: "var(--tile-accent-color)", fontSize: "calc(var(--tile-font-size) + 6px)", ...style }} {...props}>
         {children}
       </h1>
     ),
-    h2: ({ children }) => (
-      <h2 className="font-display font-bold mt-4 mb-2 tracking-wide" style={{ color: "var(--tile-accent-color)", fontSize: "calc(var(--tile-font-size) + 3px)" }}>
+    h2: ({ children, style, ...props }) => (
+      <h2 className="font-display font-bold mt-4 mb-2 tracking-wide" style={{ color: "var(--tile-accent-color)", fontSize: "calc(var(--tile-font-size) + 3px)", ...style }} {...props}>
         {children}
       </h2>
     ),
-    h3: ({ children }) => (
-      <h3 className="font-display font-bold mt-3 mb-1.5 tracking-wide" style={{ color: "var(--tile-accent-color)", fontSize: "calc(var(--tile-font-size) + 1px)" }}>
+    h3: ({ children, style, ...props }) => (
+      <h3 className="font-display font-bold mt-3 mb-1.5 tracking-wide" style={{ color: "var(--tile-accent-color)", fontSize: "calc(var(--tile-font-size) + 1px)", ...style }} {...props}>
         {children}
       </h3>
     ),
-    h4: ({ children }) => (
-      <h4 className="font-display font-semibold mt-3 mb-1 tracking-wide" style={{ color: "var(--tile-content-color)", fontSize: "var(--tile-font-size)" }}>
+    h4: ({ children, style, ...props }) => (
+      <h4 className="font-display font-semibold mt-3 mb-1 tracking-wide" style={{ color: "var(--tile-content-color)", fontSize: "var(--tile-font-size)", ...style }} {...props}>
         {children}
       </h4>
     ),
-    p: ({ children }) => (
-      <p className="leading-[1.8] mb-1.5" style={{ color: "var(--tile-content-color)", fontSize: "var(--tile-font-size)" }}>
+    p: ({ children, style, ...props }) => (
+      <p className="leading-[1.8] mb-1.5" style={{ color: "var(--tile-content-color)", fontSize: "var(--tile-font-size)", ...style }} {...props}>
         {children}
       </p>
     ),
-    strong: ({ children }) => (
-      <strong className="font-semibold" style={{ color: "var(--tile-accent-color)" }}>
+    strong: ({ children, style, ...props }) => (
+      <strong className="font-semibold" style={{ color: "var(--tile-accent-color)", ...style }} {...props}>
         {children}
       </strong>
     ),
-    em: ({ children }) => (
-      <em className="italic" style={{ color: "var(--tile-muted-color)" }}>
+    em: ({ children, style, ...props }) => (
+      <em className="italic" style={{ color: "var(--tile-muted-color)", ...style }} {...props}>
         {children}
       </em>
     ),
-    blockquote: ({ children }) => (
-      <blockquote className="border-l-2 pl-3 my-2 italic leading-[1.8]" style={{ borderColor: "var(--tile-border-color)", color: "var(--tile-muted-color)", fontSize: "var(--tile-font-size)" }}>
+    blockquote: ({ children, style, ...props }) => (
+      <blockquote className="border-l-2 pl-3 my-2 italic leading-[1.8]" style={{ borderColor: "var(--tile-border-color)", color: "var(--tile-muted-color)", fontSize: "var(--tile-font-size)", ...style }} {...props}>
         {children}
       </blockquote>
     ),
-    ul: ({ children }) => (
-      <ul className="ml-4 leading-[1.8] list-disc list-outside mb-1.5" style={{ color: "var(--tile-content-color)", fontSize: "var(--tile-font-size)" }}>
+    ul: ({ children, style, ...props }) => (
+      <ul className="ml-4 leading-[1.8] list-disc list-outside mb-1.5" style={{ color: "var(--tile-content-color)", fontSize: "var(--tile-font-size)", ...style }} {...props}>
         {children}
       </ul>
     ),
-    ol: ({ children }) => (
-      <ol className="ml-4 leading-[1.8] list-decimal list-outside mb-1.5" style={{ color: "var(--tile-content-color)", fontSize: "var(--tile-font-size)" }}>
+    ol: ({ children, style, ...props }) => (
+      <ol className="ml-4 leading-[1.8] list-decimal list-outside mb-1.5" style={{ color: "var(--tile-content-color)", fontSize: "var(--tile-font-size)", ...style }} {...props}>
         {children}
       </ol>
     ),
-    li: ({ children }) => (
-      <li className="leading-[1.8]" style={{ color: "var(--tile-content-color)" }}>
+    li: ({ children, style, ...props }) => (
+      <li className="leading-[1.8]" style={{ color: "var(--tile-content-color)", ...style }} {...props}>
         {children}
       </li>
     ),
     hr: () => (
       <hr className="my-3 border-none h-px" style={{ background: "var(--tile-border-color)" }} />
     ),
-    code: ({ className, children }) => {
+    code: ({ className, children, style, ...props }) => {
       const isBlock = className?.startsWith("language-") || String(children).includes("\n");
       if (isBlock) {
         return (
-          <code className="text-[12px] font-mono leading-[1.7] whitespace-pre" style={{ color: "var(--tile-content-color)" }}>
+          <code className="text-[12px] font-mono leading-[1.7] whitespace-pre" style={{ color: "var(--tile-content-color)", ...style }} {...props}>
             {children}
           </code>
         );
       }
       return (
-        <code className="px-1.5 py-0.5 text-[11px] font-mono rounded" style={{ backgroundColor: "var(--tile-code-bg)", color: "var(--tile-accent-color)" }}>
+        <code className="px-1.5 py-0.5 text-[11px] font-mono rounded" style={{ backgroundColor: "var(--tile-code-bg)", color: "var(--tile-accent-color)", ...style }} {...props}>
           {children}
         </code>
       );
     },
-    pre: ({ children }) => (
-      <pre className="my-2 px-3 py-2 rounded overflow-x-auto" style={{ backgroundColor: "var(--tile-code-bg)", fontSize: "var(--tile-font-size)" }}>
+    pre: ({ children, style, ...props }) => (
+      <pre className="my-2 px-3 py-2 rounded overflow-x-auto" style={{ backgroundColor: "var(--tile-code-bg)", fontSize: "var(--tile-font-size)", ...style }} {...props}>
         {children}
       </pre>
     ),
-    a: ({ href, children }) => (
+    a: ({ href, children, style, ...props }) => (
       <a
         href={href}
         className="underline underline-offset-2 cursor-pointer"
-        style={{ color: "var(--tile-accent-color)" }}
+        style={{ color: "var(--tile-accent-color)", ...style }}
+        {...props}
         onClick={(e) => {
           e.preventDefault();
           if (href) {
@@ -170,29 +172,30 @@ function tileMdComponents(): Components {
         {children}
       </a>
     ),
-    table: ({ children }) => (
+    table: ({ children, style, ...props }) => (
       <div className="my-2 overflow-x-auto">
-        <table className="w-full text-[12px] border-collapse" style={{ fontSize: "var(--tile-font-size)" }}>
+        <table className="w-full text-[12px] border-collapse" style={{ fontSize: "var(--tile-font-size)", ...style }} {...props}>
           {children}
         </table>
       </div>
     ),
-    th: ({ children }) => (
-      <th className="text-left px-2 py-1 font-semibold border-b" style={{ borderColor: "var(--tile-border-color)", color: "var(--tile-accent-color)" }}>
+    th: ({ children, style, ...props }) => (
+      <th className="text-left px-2 py-1 font-semibold border-b" style={{ borderColor: "var(--tile-border-color)", color: "var(--tile-accent-color)", ...style }} {...props}>
         {children}
       </th>
     ),
-    td: ({ children }) => (
-      <td className="px-2 py-1 border-b" style={{ borderColor: "var(--tile-border-color)", color: "var(--tile-content-color)" }}>
+    td: ({ children, style, ...props }) => (
+      <td className="px-2 py-1 border-b" style={{ borderColor: "var(--tile-border-color)", color: "var(--tile-content-color)", ...style }} {...props}>
         {children}
       </td>
     ),
-    input: ({ checked, ...props }) => (
+    input: ({ checked, style, ...props }) => (
       <input
         {...props}
         checked={checked}
         disabled
         className="mr-1.5"
+        style={style}
       />
     ),
   };
@@ -209,7 +212,7 @@ function TileMarkdownContent({ content }: { content: string }) {
 
   return (
     <div className="font-body" style={{ fontSize: "var(--tile-font-size)" }}>
-      <Markdown remarkPlugins={[remarkGfm]} components={tileMdComponents()}>
+      <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={tileMdComponents()}>
         {content}
       </Markdown>
     </div>

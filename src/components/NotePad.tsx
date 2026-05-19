@@ -21,6 +21,7 @@ import {
   getCurrentWindowBounds,
   recycleCurrentNotepad,
   setCurrentWindowAlwaysOnTop,
+  setCurrentWindowIgnoreCursorEvents,
   showCurrentWindow,
   startCurrentWindowDrag,
   startCurrentWindowResize,
@@ -132,6 +133,9 @@ export function NotePad({
     resolveTileColor("system", normalizeTileColor(initialTileColor)),
   );
   const [isExiting, setIsExiting] = useState(false);
+  const [tileDesktopOnly, setTileDesktopOnly] = useState(false);
+  const [tileClickThrough, setTileClickThrough] = useState(false);
+  const [tileAllowDrag, setTileAllowDrag] = useState(true);
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const isStandby = useRef(
     typeof window !== "undefined" &&
@@ -170,6 +174,9 @@ export function NotePad({
               loadedConfig.tileColor,
             ),
           );
+          setTileDesktopOnly(loadedConfig.tileDesktopOnly ?? false);
+          setTileClickThrough(loadedConfig.tileClickThrough ?? false);
+          setTileAllowDrag(loadedConfig.tileAllowDrag ?? true);
         }
         if (initialNoteId) {
           const note = await getNote(initialNoteId);
@@ -225,6 +232,9 @@ export function NotePad({
       setTileColorRaw(normalizeTileColor(raw));
       setTileColor(resolveTileColor(mode, raw));
       if (event.payload.surfaceFontSize != null) setSurfaceFontSize(event.payload.surfaceFontSize);
+      if (event.payload.tileDesktopOnly != null) setTileDesktopOnly(event.payload.tileDesktopOnly);
+      if (event.payload.tileClickThrough != null) setTileClickThrough(event.payload.tileClickThrough);
+      if (event.payload.tileAllowDrag != null) setTileAllowDrag(event.payload.tileAllowDrag);
     });
     return () => {
       void unlisten.then((fn) => fn());
@@ -306,7 +316,16 @@ export function NotePad({
 
     try {
       if (nextMode === "tile") {
+        // Desktop-only: don't set always-on-top, so tile stays at desktop level
+        await setCurrentWindowAlwaysOnTop(!tileDesktopOnly);
+        // Click-through: ignore cursor events so clicks pass through
+        if (tileClickThrough) {
+          await setCurrentWindowIgnoreCursorEvents(true);
+        }
+      } else {
+        // Exiting tile mode: restore normal behavior
         await setCurrentWindowAlwaysOnTop(true);
+        await setCurrentWindowIgnoreCursorEvents(false);
       }
 
       const currentBounds = await getCurrentWindowBounds();
@@ -316,7 +335,7 @@ export function NotePad({
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     }
-  }, []);
+  }, [tileDesktopOnly, tileClickThrough]);
 
   useEffect(() => {
     function handleSurfaceModeRequest(event: Event) {
@@ -491,7 +510,7 @@ export function NotePad({
           data-surface-mode={surfaceMode}
           data-context-menu="tile"
           data-note-id={tileNoteId}
-          onMouseDown={handleDrag}
+          onMouseDown={tileAllowDrag ? handleDrag : undefined}
         >
           <SurfaceResizeHandles />
         </Tile>

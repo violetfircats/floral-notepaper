@@ -158,6 +158,54 @@ export function SettingsPanel({
 
         <section className="space-y-2">
           <label className="block text-[11px] font-body text-ink-faint">
+            磁贴行为
+          </label>
+          <ToggleRow
+            label="仅在桌面显示"
+            checked={config.tileDesktopOnly ?? false}
+            onChange={(checked) =>
+              setConfigValue("tileDesktopOnly", checked)
+            }
+          />
+          <ToggleRow
+            label="点击穿透"
+            checked={config.tileClickThrough ?? false}
+            onChange={(checked) =>
+              setConfigValue("tileClickThrough", checked)
+            }
+          />
+          <ToggleRow
+            label="允许拖动"
+            checked={config.tileAllowDrag ?? true}
+            onChange={(checked) =>
+              setConfigValue("tileAllowDrag", checked)
+            }
+          />
+          <ToggleRow
+            label="屏幕以内"
+            checked={config.tileKeepOnScreen ?? true}
+            onChange={(checked) =>
+              setConfigValue("tileKeepOnScreen", checked)
+            }
+          />
+          <ToggleRow
+            label="保存位置"
+            checked={config.tileSavePosition ?? true}
+            onChange={(checked) =>
+              setConfigValue("tileSavePosition", checked)
+            }
+          />
+          <ToggleRow
+            label="边缘吸附"
+            checked={config.tileEdgeSnap ?? false}
+            onChange={(checked) =>
+              setConfigValue("tileEdgeSnap", checked)
+            }
+          />
+        </section>
+
+        <section className="space-y-2">
+          <label className="block text-[11px] font-body text-ink-faint">
             编辑器字号
           </label>
           <div className="flex items-center gap-3 h-9 rounded-lg px-2.5 bg-paper-warm/45 border border-paper-deep/25">

@@ -30,6 +30,18 @@ pub struct AppConfig {
     pub surface_font_size: u32,
     #[serde(default = "default_external_file_auto_save")]
     pub external_file_auto_save: bool,
+    #[serde(default = "default_tile_desktop_only")]
+    pub tile_desktop_only: bool,
+    #[serde(default = "default_tile_click_through")]
+    pub tile_click_through: bool,
+    #[serde(default = "default_tile_allow_drag")]
+    pub tile_allow_drag: bool,
+    #[serde(default = "default_tile_keep_on_screen")]
+    pub tile_keep_on_screen: bool,
+    #[serde(default = "default_tile_save_position")]
+    pub tile_save_position: bool,
+    #[serde(default = "default_tile_edge_snap")]
+    pub tile_edge_snap: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -491,6 +503,12 @@ impl NoteStore {
             font_size: default_font_size(),
             surface_font_size: default_surface_font_size(),
             external_file_auto_save: default_external_file_auto_save(),
+            tile_desktop_only: false,
+            tile_click_through: false,
+            tile_allow_drag: true,
+            tile_keep_on_screen: true,
+            tile_save_position: true,
+            tile_edge_snap: false,
         }
     }
 
@@ -898,6 +916,12 @@ mod tests {
             font_size: 16,
             surface_font_size: 16,
             external_file_auto_save: true,
+            tile_desktop_only: false,
+            tile_click_through: false,
+            tile_allow_drag: true,
+            tile_keep_on_screen: true,
+            tile_save_position: true,
+            tile_edge_snap: false,
         };
 
         store.save_config(saved.clone()).expect("save config");

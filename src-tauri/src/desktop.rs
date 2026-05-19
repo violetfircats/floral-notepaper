@@ -1043,6 +1043,37 @@ fn apply_autostart(_app: &AppHandle, _enabled: bool) -> Result<(), Box<dyn Error
     Ok(())
 }
 
+/// Set a tile window to desktop-only mode (behind other windows, above desktop).
+/// When enabled, removes always-on-top so the tile stays at desktop level.
+pub fn set_tile_desktop_only(app: &AppHandle, label: &str, enabled: bool) -> Result<(), AppError> {
+    let Some(window) = app.get_webview_window(label) else {
+        return Err(AppError {
+            code: "notFound".into(),
+            message: format!("window '{label}' not found"),
+        });
+    };
+
+    // When desktop-only: remove always-on-top so tile goes behind other windows
+    // When normal mode: set always-on-top so tile stays visible
+    window.set_always_on_top(!enabled)?;
+    Ok(())
+}
+
+/// Toggle click-through on a tile window (all platforms).
+/// When enabled, mouse events pass through to windows underneath.
+pub fn set_tile_click_through(app: &AppHandle, label: &str, enabled: bool) -> Result<(), AppError> {
+    let Some(window) = app.get_webview_window(label) else {
+        return Err(AppError {
+            code: "notFound".into(),
+            message: format!("window '{label}' not found"),
+        });
+    };
+
+    // Tauri v2 built-in: ignores cursor events, making the window click-through
+    window.set_ignore_cursor_events(enabled)?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1204,6 +1235,12 @@ mod tests {
             font_size: 14,
             surface_font_size: 14,
             external_file_auto_save: true,
+            tile_desktop_only: false,
+            tile_click_through: false,
+            tile_allow_drag: true,
+            tile_keep_on_screen: true,
+            tile_save_position: true,
+            tile_edge_snap: false,
         };
         let next = AppConfig {
             notes_dir: "D:\\other-notes".into(),
@@ -1219,6 +1256,12 @@ mod tests {
             font_size: 16,
             surface_font_size: 16,
             external_file_auto_save: true,
+            tile_desktop_only: true,
+            tile_click_through: true,
+            tile_allow_drag: false,
+            tile_keep_on_screen: false,
+            tile_save_position: false,
+            tile_edge_snap: true,
         };
 
         assert_eq!(
