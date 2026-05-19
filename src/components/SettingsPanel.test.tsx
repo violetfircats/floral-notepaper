@@ -16,6 +16,12 @@ const config = {
   fontSize: 14,
   surfaceFontSize: 14,
   externalFileAutoSave: true,
+  tileDesktopOnly: false,
+  tileClickThrough: false,
+  tileAllowDrag: false,
+  tileKeepOnScreen: false,
+  tileSavePosition: false,
+  tileEdgeSnap: false,
 };
 
 describe("SettingsPanel", () => {
