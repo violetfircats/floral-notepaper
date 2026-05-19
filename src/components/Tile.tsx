@@ -251,11 +251,19 @@ export function Tile({
     const el = scrollRef.current;
     if (!el) return;
     const check = () => setScrollOverflows(el.scrollHeight > el.clientHeight + 2);
-    check();
-    // Re-check on resize or content change via MutationObserver
-    const observer = new ResizeObserver(check);
-    observer.observe(el);
-    return () => observer.disconnect();
+    // Delay initial check for markdown layout to settle
+    const timer = setTimeout(check, 80);
+    // ResizeObserver: catches window resize → clientHeight changes
+    const resizeObs = new ResizeObserver(check);
+    resizeObs.observe(el);
+    // MutationObserver: catches DOM content changes → scrollHeight changes
+    const mutationObs = new MutationObserver(check);
+    mutationObs.observe(el, { childList: true, subtree: true, characterData: true });
+    return () => {
+      clearTimeout(timer);
+      resizeObs.disconnect();
+      mutationObs.disconnect();
+    };
   }, [autoScroll, content]);
 
   // Auto-scroll animation loop (pauses on hover)
@@ -283,6 +291,7 @@ export function Tile({
       pauseUntil = 0;
 
       const maxScroll = el.scrollHeight - el.clientHeight;
+      if (maxScroll <= 0) return; // content fits, nothing to scroll
       el.scrollTop += SPEED * dt;
 
       if (el.scrollTop >= maxScroll - 1) {

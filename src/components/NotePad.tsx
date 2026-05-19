@@ -365,6 +365,11 @@ export function NotePad({
     void setCurrentWindowAlwaysOnTop(!tileDesktopOnly).catch(() => undefined);
   }, [surfaceMode, tileDesktopOnly]);
 
+  useEffect(() => {
+    if (surfaceMode !== "tile") return;
+    void setCurrentWindowIgnoreCursorEvents(tileClickThrough).catch(() => undefined);
+  }, [surfaceMode, tileClickThrough]);
+
   const handleSave = useCallback(async () => {
     setErrorMessage(null);
     try {

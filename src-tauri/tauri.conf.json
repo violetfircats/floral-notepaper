@@ -31,6 +31,10 @@
   "bundle": {
     "active": true,
     "targets": ["app", "dmg", "nsis"],
+    "publisher": "Floral Notepaper",
+    "copyright": "Copyright © 2025 Floral Notepaper",
+    "shortDescription": "花笺 - 轻量跨平台桌面便签",
+    "longDescription": "花笺是一款轻量级跨平台桌面便签应用，支持 Markdown 编辑、桌面磁贴、系统托盘快捷操作。",
     "macOS": {
       "minimumSystemVersion": "15.0"
     },
