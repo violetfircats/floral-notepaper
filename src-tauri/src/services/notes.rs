@@ -42,6 +42,8 @@ pub struct AppConfig {
     pub tile_save_position: bool,
     #[serde(default = "default_tile_edge_snap")]
     pub tile_edge_snap: bool,
+    #[serde(default = "default_tile_auto_scroll")]
+    pub tile_auto_scroll: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -509,6 +511,7 @@ impl NoteStore {
             tile_keep_on_screen: true,
             tile_save_position: true,
             tile_edge_snap: false,
+            tile_auto_scroll: true,
         }
     }
 
@@ -809,6 +812,10 @@ fn default_tile_edge_snap() -> bool {
     false
 }
 
+fn default_tile_auto_scroll() -> bool {
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -946,6 +953,7 @@ mod tests {
             tile_keep_on_screen: true,
             tile_save_position: true,
             tile_edge_snap: false,
+            tile_auto_scroll: true,
         };
 
         store.save_config(saved.clone()).expect("save config");

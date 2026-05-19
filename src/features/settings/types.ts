@@ -24,4 +24,5 @@ export interface AppConfig {
   tileKeepOnScreen: boolean;
   tileSavePosition: boolean;
   tileEdgeSnap: boolean;
+  tileAutoScroll: boolean;
 }

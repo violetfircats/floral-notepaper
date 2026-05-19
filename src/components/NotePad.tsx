@@ -136,6 +136,7 @@ export function NotePad({
   const [tileDesktopOnly, setTileDesktopOnly] = useState(false);
   const [tileClickThrough, setTileClickThrough] = useState(false);
   const [tileAllowDrag, setTileAllowDrag] = useState(true);
+  const [tileAutoScroll, setTileAutoScroll] = useState(true);
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const isStandby = useRef(
     typeof window !== "undefined" &&
@@ -177,6 +178,7 @@ export function NotePad({
           setTileDesktopOnly(loadedConfig.tileDesktopOnly ?? false);
           setTileClickThrough(loadedConfig.tileClickThrough ?? false);
           setTileAllowDrag(loadedConfig.tileAllowDrag ?? true);
+          setTileAutoScroll(loadedConfig.tileAutoScroll ?? true);
         }
         if (initialNoteId) {
           const note = await getNote(initialNoteId);
@@ -228,6 +230,7 @@ export function NotePad({
       tileDesktopOnly?: boolean;
       tileClickThrough?: boolean;
       tileAllowDrag?: boolean;
+      tileAutoScroll?: boolean;
     }>("config-changed", (event) => {
       const mode = event.payload.tileColorMode ?? tileColorMode;
       const raw = event.payload.tileColor ?? tileColorRaw;
@@ -238,6 +241,7 @@ export function NotePad({
       if (event.payload.tileDesktopOnly != null) setTileDesktopOnly(event.payload.tileDesktopOnly);
       if (event.payload.tileClickThrough != null) setTileClickThrough(event.payload.tileClickThrough);
       if (event.payload.tileAllowDrag != null) setTileAllowDrag(event.payload.tileAllowDrag);
+      if (event.payload.tileAutoScroll != null) setTileAutoScroll(event.payload.tileAutoScroll);
     });
     return () => {
       void unlisten.then((fn) => fn());
@@ -358,8 +362,8 @@ export function NotePad({
 
   useEffect(() => {
     if (surfaceMode !== "tile") return;
-    void setCurrentWindowAlwaysOnTop(true).catch(() => undefined);
-  }, [surfaceMode]);
+    void setCurrentWindowAlwaysOnTop(!tileDesktopOnly).catch(() => undefined);
+  }, [surfaceMode, tileDesktopOnly]);
 
   const handleSave = useCallback(async () => {
     setErrorMessage(null);
@@ -509,6 +513,7 @@ export function NotePad({
           fontSize={surfaceFontSize}
           width="100%"
           markdown
+          autoScroll={tileAutoScroll}
           className="h-full cursor-default"
           data-surface-mode={surfaceMode}
           data-context-menu="tile"

@@ -25,6 +25,9 @@ const TRAY_SHOW_MAIN_ID: &str = "show-main";
 const TRAY_QUICK_NOTE_ID: &str = "quick-note";
 const TRAY_TOGGLE_CLOSE_TO_TRAY_ID: &str = "toggle-close-to-tray";
 const TRAY_TOGGLE_AUTOSTART_ID: &str = "toggle-autostart";
+const TRAY_TOGGLE_TILE_DESKTOP_ONLY_ID: &str = "toggle-tile-desktop-only";
+const TRAY_TOGGLE_TILE_CLICK_THROUGH_ID: &str = "toggle-tile-click-through";
+const TRAY_TOGGLE_TILE_AUTO_SCROLL_ID: &str = "toggle-tile-auto-scroll";
 const TRAY_QUIT_ID: &str = "quit";
 const NOTEPAD_POOL_CAPACITY: usize = 2;
 
@@ -34,6 +37,9 @@ pub enum TrayMenuAction {
     QuickNote,
     ToggleCloseToTray,
     ToggleAutostart,
+    ToggleTileDesktopOnly,
+    ToggleTileClickThrough,
+    ToggleTileAutoScroll,
     Quit,
 }
 
@@ -169,12 +175,15 @@ pub fn tray_menu_action(id: &str) -> Option<TrayMenuAction> {
         TRAY_QUICK_NOTE_ID => Some(TrayMenuAction::QuickNote),
         TRAY_TOGGLE_CLOSE_TO_TRAY_ID => Some(TrayMenuAction::ToggleCloseToTray),
         TRAY_TOGGLE_AUTOSTART_ID => Some(TrayMenuAction::ToggleAutostart),
+        TRAY_TOGGLE_TILE_DESKTOP_ONLY_ID => Some(TrayMenuAction::ToggleTileDesktopOnly),
+        TRAY_TOGGLE_TILE_CLICK_THROUGH_ID => Some(TrayMenuAction::ToggleTileClickThrough),
+        TRAY_TOGGLE_TILE_AUTO_SCROLL_ID => Some(TrayMenuAction::ToggleTileAutoScroll),
         TRAY_QUIT_ID => Some(TrayMenuAction::Quit),
         _ => None,
     }
 }
 
-pub fn tray_menu_specs(close_to_tray: bool, autostart: bool) -> Vec<TrayMenuSpec> {
+pub fn tray_menu_specs(config: &AppConfig) -> Vec<TrayMenuSpec> {
     vec![
         TrayMenuSpec {
             id: TRAY_SHOW_MAIN_ID,
@@ -189,12 +198,37 @@ pub fn tray_menu_specs(close_to_tray: bool, autostart: bool) -> Vec<TrayMenuSpec
         TrayMenuSpec {
             id: TRAY_TOGGLE_CLOSE_TO_TRAY_ID,
             label: "关闭到托盘",
-            checked: Some(close_to_tray),
+            checked: Some(config.close_to_tray),
         },
         TrayMenuSpec {
             id: TRAY_TOGGLE_AUTOSTART_ID,
             label: "开机自启动",
-            checked: Some(autostart),
+            checked: Some(config.autostart),
+        },
+        TrayMenuSpec {
+            id: "tile-separator-1",
+            label: "",
+            checked: None,
+        },
+        TrayMenuSpec {
+            id: TRAY_TOGGLE_TILE_DESKTOP_ONLY_ID,
+            label: "磁贴桌面显示",
+            checked: Some(config.tile_desktop_only),
+        },
+        TrayMenuSpec {
+            id: TRAY_TOGGLE_TILE_CLICK_THROUGH_ID,
+            label: "磁贴点击穿透",
+            checked: Some(config.tile_click_through),
+        },
+        TrayMenuSpec {
+            id: TRAY_TOGGLE_TILE_AUTO_SCROLL_ID,
+            label: "磁贴自动滚动",
+            checked: Some(config.tile_auto_scroll),
+        },
+        TrayMenuSpec {
+            id: "tile-separator-2",
+            label: "",
+            checked: None,
         },
         TrayMenuSpec {
             id: TRAY_QUIT_ID,
@@ -401,36 +435,48 @@ fn main_window_close_action(app_is_exiting: bool, close_to_tray: bool) -> MainWi
 fn setup_tray(app: &mut App) -> Result<(), Box<dyn Error>> {
     let config = load_config()?;
     let autostart = autostart_enabled(app.handle(), config.autostart);
-    let specs = tray_menu_specs(config.close_to_tray, autostart);
+    // Keep autostart check state in sync with actual OS state
+    let mut config_with_real_autostart = config.clone();
+    config_with_real_autostart.autostart = autostart;
+    let specs = tray_menu_specs(&config_with_real_autostart);
 
     let show_main = MenuItem::with_id(app, specs[0].id, specs[0].label, true, None::<&str>)?;
     let quick_note = MenuItem::with_id(app, specs[1].id, specs[1].label, true, None::<&str>)?;
     let close_to_tray = CheckMenuItem::with_id(
-        app,
-        specs[2].id,
-        specs[2].label,
-        true,
-        specs[2].checked.unwrap_or(false),
-        None::<&str>,
+        app, specs[2].id, specs[2].label, true,
+        specs[2].checked.unwrap_or(false), None::<&str>,
     )?;
-    let autostart = CheckMenuItem::with_id(
-        app,
-        specs[3].id,
-        specs[3].label,
-        true,
-        specs[3].checked.unwrap_or(false),
-        None::<&str>,
+    let autostart_item = CheckMenuItem::with_id(
+        app, specs[3].id, specs[3].label, true,
+        specs[3].checked.unwrap_or(false), None::<&str>,
     )?;
-    let separator = PredefinedMenuItem::separator(app)?;
-    let quit = MenuItem::with_id(app, specs[4].id, specs[4].label, true, None::<&str>)?;
+    let sep1 = PredefinedMenuItem::separator(app)?;
+    let tile_desktop_only = CheckMenuItem::with_id(
+        app, specs[5].id, specs[5].label, true,
+        specs[5].checked.unwrap_or(false), None::<&str>,
+    )?;
+    let tile_click_through = CheckMenuItem::with_id(
+        app, specs[6].id, specs[6].label, true,
+        specs[6].checked.unwrap_or(false), None::<&str>,
+    )?;
+    let tile_auto_scroll = CheckMenuItem::with_id(
+        app, specs[7].id, specs[7].label, true,
+        specs[7].checked.unwrap_or(false), None::<&str>,
+    )?;
+    let sep2 = PredefinedMenuItem::separator(app)?;
+    let quit = MenuItem::with_id(app, specs[9].id, specs[9].label, true, None::<&str>)?;
     let menu = Menu::with_items(
         app,
         &[
             &show_main,
             &quick_note,
             &close_to_tray,
-            &autostart,
-            &separator,
+            &autostart_item,
+            &sep1,
+            &tile_desktop_only,
+            &tile_click_through,
+            &tile_auto_scroll,
+            &sep2,
             &quit,
         ],
     )?;
@@ -476,9 +522,31 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error
             let store = default_store()?;
             let mut config = store.load_config()?;
             config.close_to_tray = !config.close_to_tray;
-            store.save_config(config)?;
+            store.save_config(config.clone())?;
+            let _ = app.emit("config-changed", config);
         }
         Some(TrayMenuAction::ToggleAutostart) => toggle_autostart(app)?,
+        Some(TrayMenuAction::ToggleTileDesktopOnly) => {
+            let store = default_store()?;
+            let mut config = store.load_config()?;
+            config.tile_desktop_only = !config.tile_desktop_only;
+            store.save_config(config.clone())?;
+            let _ = app.emit("config-changed", config);
+        }
+        Some(TrayMenuAction::ToggleTileClickThrough) => {
+            let store = default_store()?;
+            let mut config = store.load_config()?;
+            config.tile_click_through = !config.tile_click_through;
+            store.save_config(config.clone())?;
+            let _ = app.emit("config-changed", config);
+        }
+        Some(TrayMenuAction::ToggleTileAutoScroll) => {
+            let store = default_store()?;
+            let mut config = store.load_config()?;
+            config.tile_auto_scroll = !config.tile_auto_scroll;
+            store.save_config(config.clone())?;
+            let _ = app.emit("config-changed", config);
+        }
         Some(TrayMenuAction::Quit) => {
             mark_app_exiting(app);
             app.exit(0);
@@ -1096,13 +1164,47 @@ mod tests {
             tray_menu_action("toggle-autostart"),
             Some(TrayMenuAction::ToggleAutostart)
         );
+        assert_eq!(
+            tray_menu_action("toggle-tile-desktop-only"),
+            Some(TrayMenuAction::ToggleTileDesktopOnly)
+        );
+        assert_eq!(
+            tray_menu_action("toggle-tile-click-through"),
+            Some(TrayMenuAction::ToggleTileClickThrough)
+        );
+        assert_eq!(
+            tray_menu_action("toggle-tile-auto-scroll"),
+            Some(TrayMenuAction::ToggleTileAutoScroll)
+        );
         assert_eq!(tray_menu_action("quit"), Some(TrayMenuAction::Quit));
         assert_eq!(tray_menu_action("unknown"), None);
     }
 
     #[test]
     fn builds_tray_menu_specs_with_configured_checked_state() {
-        let specs = tray_menu_specs(true, false);
+        let config = AppConfig {
+            notes_dir: String::new(),
+            global_shortcut: String::new(),
+            close_to_tray: true,
+            autostart: false,
+            default_view_mode: String::new(),
+            note_auto_save: false,
+            note_surface_auto_save: false,
+            tile_color: String::new(),
+            tile_color_mode: String::new(),
+            theme: String::new(),
+            font_size: 0,
+            surface_font_size: 0,
+            external_file_auto_save: false,
+            tile_desktop_only: true,
+            tile_click_through: false,
+            tile_allow_drag: false,
+            tile_keep_on_screen: false,
+            tile_save_position: false,
+            tile_edge_snap: false,
+            tile_auto_scroll: true,
+        };
+        let specs = tray_menu_specs(&config);
         let ids: Vec<_> = specs.iter().map(|spec| spec.id).collect();
 
         assert_eq!(
@@ -1112,11 +1214,24 @@ mod tests {
                 "quick-note",
                 "toggle-close-to-tray",
                 "toggle-autostart",
+                "tile-separator-1",
+                "toggle-tile-desktop-only",
+                "toggle-tile-click-through",
+                "toggle-tile-auto-scroll",
+                "tile-separator-2",
                 "quit"
             ]
         );
+        // close_to_tray = true
         assert_eq!(specs[2].checked, Some(true));
+        // autostart = false
         assert_eq!(specs[3].checked, Some(false));
+        // tile_desktop_only = true
+        assert_eq!(specs[5].checked, Some(true));
+        // tile_click_through = false
+        assert_eq!(specs[6].checked, Some(false));
+        // tile_auto_scroll = true
+        assert_eq!(specs[7].checked, Some(true));
     }
 
     #[test]

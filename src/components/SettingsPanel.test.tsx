@@ -22,6 +22,7 @@ const config = {
   tileKeepOnScreen: false,
   tileSavePosition: false,
   tileEdgeSnap: false,
+  tileAutoScroll: false,
 };
 
 describe("SettingsPanel", () => {

@@ -47,6 +47,7 @@ describe("settings api", () => {
       tileKeepOnScreen: false,
       tileSavePosition: false,
       tileEdgeSnap: false,
+      tileAutoScroll: false,
     };
     mockedInvoke.mockResolvedValue(config);
 
@@ -76,6 +77,7 @@ describe("settings api", () => {
       tileKeepOnScreen: false,
       tileSavePosition: false,
       tileEdgeSnap: false,
+      tileAutoScroll: false,
     };
     mockedInvoke.mockResolvedValue(config);
 

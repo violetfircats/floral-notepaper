@@ -202,6 +202,13 @@ export function SettingsPanel({
               setConfigValue("tileEdgeSnap", checked)
             }
           />
+          <ToggleRow
+            label="自动滚动内容"
+            checked={config.tileAutoScroll ?? true}
+            onChange={(checked) =>
+              setConfigValue("tileAutoScroll", checked)
+            }
+          />
         </section>
 
         <section className="space-y-2">

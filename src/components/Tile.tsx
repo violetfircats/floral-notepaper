@@ -1,5 +1,5 @@
 import chroma from "chroma-js";
-import type { CSSProperties, HTMLAttributes } from "react";
+import { type CSSProperties, type HTMLAttributes, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -20,6 +20,8 @@ export interface TileProps
   rotation?: number;
   fontSize?: number;
   markdown?: boolean;
+  /** 启用内容自动循环滚动，小窗口也能看到全部内容 */
+  autoScroll?: boolean;
 }
 
 const MARK_SIZE = 8;
@@ -227,6 +229,7 @@ export function Tile({
   rotation = 0,
   fontSize = 14,
   markdown = false,
+  autoScroll = false,
   className = "",
   style,
   children,
@@ -236,6 +239,63 @@ export function Tile({
   const alpha = tileColorAlpha(tileColor);
   const isTransparent = alpha < 1;
   const hex6 = tileColorHex6(tileColor);
+
+  // ---- Auto-scroll state ----
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollOverflows, setScrollOverflows] = useState(false);
+  const [scrollHovered, setScrollHovered] = useState(false);
+
+  // Detect overflow after content renders
+  useEffect(() => {
+    if (!autoScroll) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const check = () => setScrollOverflows(el.scrollHeight > el.clientHeight + 2);
+    check();
+    // Re-check on resize or content change via MutationObserver
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [autoScroll, content]);
+
+  // Auto-scroll animation loop (pauses on hover)
+  useEffect(() => {
+    if (!autoScroll || !scrollOverflows || scrollHovered) return;
+    const el = scrollRef.current;
+    if (!el) return;
+
+    let rafId: number;
+    const SPEED = 20; // pixels per second
+    const PAUSE_MS = 2000;
+
+    let lastTime = 0;
+    let pauseUntil = 0;
+
+    const animate = (time: number) => {
+      if (lastTime === 0) lastTime = time;
+      const dt = (time - lastTime) / 1000;
+      lastTime = time;
+
+      if (pauseUntil > 0 && time < pauseUntil) {
+        rafId = requestAnimationFrame(animate);
+        return;
+      }
+      pauseUntil = 0;
+
+      const maxScroll = el.scrollHeight - el.clientHeight;
+      el.scrollTop += SPEED * dt;
+
+      if (el.scrollTop >= maxScroll - 1) {
+        el.scrollTop = 0;
+        pauseUntil = time + PAUSE_MS;
+      }
+
+      rafId = requestAnimationFrame(animate);
+    };
+
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
+  }, [autoScroll, scrollOverflows, scrollHovered, content]);
 
   const isDarkTheme =
     typeof document !== "undefined" &&
@@ -304,7 +364,12 @@ export function Tile({
       className={`relative rounded-xl border overflow-hidden select-none shadow-[0_1px_8px_rgba(26,26,24,0.04)] hover:shadow-[0_6px_24px_rgba(26,26,24,0.07)] ${className}`}
       style={{ ...mergedStyle, ...(markdown ? tileCssVars : {}) }}
     >
-      <div className="px-4 pt-4 pb-4 h-full overflow-y-auto scrollbar-hidden">
+      <div
+        ref={scrollRef}
+        className={`px-4 pt-4 pb-4 h-full scrollbar-hidden ${autoScroll && scrollOverflows ? "overflow-y-hidden" : "overflow-y-auto"}`}
+        onMouseEnter={autoScroll ? () => setScrollHovered(true) : undefined}
+        onMouseLeave={autoScroll ? () => setScrollHovered(false) : undefined}
+      >
         {title && (
           <div className="font-display tracking-wide mb-3 leading-snug" style={{ color: titleColor, fontSize: `${fontSize + 1}px` }}>
             {title}

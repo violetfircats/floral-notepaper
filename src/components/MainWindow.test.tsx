@@ -27,6 +27,7 @@ describe("MainWindow settings", () => {
           tileKeepOnScreen: false,
           tileSavePosition: false,
           tileEdgeSnap: false,
+          tileAutoScroll: false,
         }}
       />,
     );
