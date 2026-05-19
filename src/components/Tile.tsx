@@ -250,9 +250,16 @@ export function Tile({
     if (!autoScroll) return;
     const el = scrollRef.current;
     if (!el) return;
-    const check = () => setScrollOverflows(el.scrollHeight > el.clientHeight + 2);
-    // Delay initial check for markdown layout to settle
-    const timer = setTimeout(check, 80);
+    const check = () => {
+      if (!el) return;
+      const overflows = el.scrollHeight > el.clientHeight + 2;
+      setScrollOverflows((prev) => (prev !== overflows ? overflows : prev));
+    };
+    // Staggered checks: immediate, after layout, after font load
+    check();
+    const t1 = setTimeout(check, 50);
+    const t2 = setTimeout(check, 200);
+    const t3 = setTimeout(check, 500);
     // ResizeObserver: catches window resize → clientHeight changes
     const resizeObs = new ResizeObserver(check);
     resizeObs.observe(el);
@@ -264,7 +271,7 @@ export function Tile({
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", onVisible);
     return () => {
-      clearTimeout(timer);
+      clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
       resizeObs.disconnect();
       mutationObs.disconnect();
       document.removeEventListener("visibilitychange", onVisible);

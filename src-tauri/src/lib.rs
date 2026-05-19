@@ -148,6 +148,7 @@ fn config_save(app: AppHandle, config: AppConfig) -> Result<AppConfig, AppError>
     })?;
     store.save_config(config.clone())?;
     let _ = app.emit("config-changed", &config);
+    desktop::sync_tray_menu(&app);
     Ok(config)
 }
 

@@ -29,6 +29,7 @@ const TRAY_TOGGLE_TILE_DESKTOP_ONLY_ID: &str = "toggle-tile-desktop-only";
 const TRAY_TOGGLE_TILE_CLICK_THROUGH_ID: &str = "toggle-tile-click-through";
 const TRAY_TOGGLE_TILE_AUTO_SCROLL_ID: &str = "toggle-tile-auto-scroll";
 const TRAY_QUIT_ID: &str = "quit";
+static TRAY_ICON_ID: &str = "main";
 const NOTEPAD_POOL_CAPACITY: usize = 2;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -535,8 +536,12 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error
             config.close_to_tray = !config.close_to_tray;
             store.save_config(config.clone())?;
             let _ = app.emit("config-changed", config);
+            sync_tray_menu(app);
         }
-        Some(TrayMenuAction::ToggleAutostart) => toggle_autostart(app)?,
+        Some(TrayMenuAction::ToggleAutostart) => {
+            toggle_autostart(app)?;
+            sync_tray_menu(app);
+        }
         Some(TrayMenuAction::ToggleTileDesktopOnly) => {
             let store = default_store()?;
             let mut config = store.load_config()?;
@@ -545,6 +550,7 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error
             // Immediately apply to all open tile windows
             apply_to_tile_windows(app, |w| { let _ = w.set_always_on_top(!config.tile_desktop_only); });
             let _ = app.emit("config-changed", config);
+            sync_tray_menu(app);
         }
         Some(TrayMenuAction::ToggleTileClickThrough) => {
             let store = default_store()?;
@@ -554,6 +560,7 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error
             // Immediately apply to all open tile windows
             apply_to_tile_windows(app, |w| { let _ = w.set_ignore_cursor_events(config.tile_click_through); });
             let _ = app.emit("config-changed", config);
+            sync_tray_menu(app);
         }
         Some(TrayMenuAction::ToggleTileAutoScroll) => {
             let store = default_store()?;
@@ -561,6 +568,7 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error
             config.tile_auto_scroll = !config.tile_auto_scroll;
             store.save_config(config.clone())?;
             let _ = app.emit("config-changed", config);
+            sync_tray_menu(app);
         }
         Some(TrayMenuAction::Quit) => {
             mark_app_exiting(app);
@@ -578,6 +586,35 @@ fn apply_to_tile_windows(app: &AppHandle, op: impl Fn(&tauri::WebviewWindow)) {
         if _label.starts_with("tile-") {
             op(&window);
         }
+    }
+}
+
+/// Rebuild the tray menu to reflect current config (keeps checkmarks in sync)
+pub fn sync_tray_menu(app: &AppHandle) {
+    let Ok(config) = load_config() else { return };
+    let autostart = autostart_enabled(app, config.autostart);
+    let mut config_with_real_autostart = config.clone();
+    config_with_real_autostart.autostart = autostart;
+    let specs = tray_menu_specs(&config_with_real_autostart);
+
+    let Ok(show_main) = MenuItem::with_id(app, specs[0].id, specs[0].label, true, None::<&str>) else { return };
+    let Ok(quick_note) = MenuItem::with_id(app, specs[1].id, specs[1].label, true, None::<&str>) else { return };
+    let Ok(close_to_tray) = CheckMenuItem::with_id(app, specs[2].id, specs[2].label, true, specs[2].checked.unwrap_or(false), None::<&str>) else { return };
+    let Ok(autostart_item) = CheckMenuItem::with_id(app, specs[3].id, specs[3].label, true, specs[3].checked.unwrap_or(false), None::<&str>) else { return };
+    let Ok(sep1) = PredefinedMenuItem::separator(app) else { return };
+    let Ok(tile_desktop_only) = CheckMenuItem::with_id(app, specs[5].id, specs[5].label, true, specs[5].checked.unwrap_or(false), None::<&str>) else { return };
+    let Ok(tile_click_through) = CheckMenuItem::with_id(app, specs[6].id, specs[6].label, true, specs[6].checked.unwrap_or(false), None::<&str>) else { return };
+    let Ok(tile_auto_scroll) = CheckMenuItem::with_id(app, specs[7].id, specs[7].label, true, specs[7].checked.unwrap_or(false), None::<&str>) else { return };
+    let Ok(sep2) = PredefinedMenuItem::separator(app) else { return };
+    let Ok(quit) = MenuItem::with_id(app, specs[9].id, specs[9].label, true, None::<&str>) else { return };
+    let Ok(menu) = Menu::with_items(app, &[
+        &show_main, &quick_note, &close_to_tray, &autostart_item,
+        &sep1, &tile_desktop_only, &tile_click_through, &tile_auto_scroll,
+        &sep2, &quit,
+    ]) else { return };
+
+    if let Some(tray) = app.tray_by_id(TRAY_ICON_ID) {
+        let _ = tray.set_menu(Some(menu));
     }
 }
 
@@ -1198,6 +1235,7 @@ fn toggle_autostart(app: &AppHandle) -> Result<(), Box<dyn Error>> {
     config.autostart = next_enabled;
     store.save_config(config.clone())?;
     let _ = app.emit("config-changed", config);
+    sync_tray_menu(app);
     Ok(())
 }
 
