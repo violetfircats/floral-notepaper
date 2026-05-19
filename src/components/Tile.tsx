@@ -323,7 +323,7 @@ export function Tile({
   const themeAccentColor = isDarkTheme ? "rgba(255,255,255,0.92)" : "rgba(26,26,24,0.92)";
   const themeCodeBg = isDarkTheme ? "rgba(255,255,255,0.08)" : "rgba(26,26,24,0.06)";
   const themeBorderColor = isDarkTheme ? "rgba(255,255,255,0.12)" : "rgba(26,26,24,0.12)";
-  const themeTitleColor = isDarkTheme ? "rgba(255,255,255,0.45)" : "rgba(26,26,24,0.45)";
+  const themeTitleColor = isDarkTheme ? "rgba(255,255,255,0.6)" : "rgba(26,26,24,0.6)";
   const themeEmptyColor = isDarkTheme ? "rgba(255,255,255,0.3)" : "rgba(26,26,24,0.3)";
   const themeCornerColor = isDarkTheme ? "rgba(255,255,255,0.18)" : "rgba(26,26,24,0.18)";
 
@@ -332,7 +332,7 @@ export function Tile({
   const mixTarget = isLightBg ? "#1a1a18" : "#ffffff";
   const solidBorderColor = chroma.mix(hex6, mixTarget, 0.18).alpha(0.3).css();
   const solidCornerColor = chroma.mix(hex6, mixTarget, 0.3).alpha(0.26).css();
-  const solidTitleColor = chroma.mix(hex6, mixTarget, 0.4).alpha(0.5).css();
+  const solidTitleColor = chroma.mix(hex6, mixTarget, 0.55).alpha(0.72).css();
   const solidContentColor = chroma.mix(hex6, mixTarget, 0.65).alpha(0.85).css();
   const solidEmptyColor = chroma.mix(hex6, mixTarget, 0.25).alpha(0.4).css();
   const solidMutedColor = chroma.mix(hex6, mixTarget, 0.5).alpha(0.65).css();

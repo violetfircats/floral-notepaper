@@ -93,7 +93,7 @@ const components: Components = {
     </ul>
   ),
   ol: ({ children, style, ...props }) => (
-    <ol className="ml-4 text-ink-soft leading-[1.9] list-decimal list-outside marker:text-bamboo/50 marker:font-mono marker:text-[12px]" style={style} {...props}>
+    <ol className="ml-4 text-ink-soft leading-[1.9] list-decimal list-outside marker:text-bamboo/50 marker:font-mono marker:text-[0.85em]" style={style} {...props}>
       {children}
     </ol>
   ),
@@ -107,13 +107,13 @@ const components: Components = {
     const isBlock = className?.startsWith("language-") || String(children).includes("\n");
     if (isBlock) {
       return (
-        <code className="text-[12px] font-mono text-ink-soft leading-[1.8] whitespace-pre" style={style} {...props}>
+        <code className="text-[0.85em] font-mono text-ink-soft leading-[1.8] whitespace-pre" style={style} {...props}>
           {children}
         </code>
       );
     }
     return (
-      <code className="px-1.5 py-0.5 text-[12px] font-mono bg-paper-warm rounded text-bamboo" style={style} {...props}>
+      <code className="px-1.5 py-0.5 text-[0.85em] font-mono bg-paper-warm rounded text-bamboo" style={style} {...props}>
         {children}
       </code>
     );
@@ -135,11 +135,11 @@ const components: Components = {
   ),
   table: ({ children }) => (
     <div className="my-3 overflow-x-auto">
-      <table className="w-full text-[13px] border-collapse">{children}</table>
+      <table className="w-full text-[0.92em] border-collapse">{children}</table>
     </div>
   ),
   th: ({ children, style, ...props }) => (
-    <th className="text-left px-3 py-1.5 border-b border-paper-deep/30 font-semibold text-ink text-[12px]" style={style} {...props}>
+    <th className="text-left px-3 py-1.5 border-b border-paper-deep/30 font-semibold text-ink text-[0.85em]" style={style} {...props}>
       {children}
     </th>
   ),

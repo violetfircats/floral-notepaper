@@ -28,6 +28,7 @@ interface SettingsPanelProps {
 
 const themeOptions: Array<{ value: ThemeOption; label: string }> = [
   { value: "light", label: "浅色" },
+  { value: "warm", label: "暖米" },
   { value: "dark", label: "深色" },
   { value: "system", label: "跟随系统" },
 ];

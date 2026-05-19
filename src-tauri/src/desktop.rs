@@ -129,6 +129,7 @@ struct WindowOpenOptions {
 #[derive(Default)]
 struct RuntimeState {
     is_exiting: AtomicBool,
+    last_surface_label: Mutex<Option<String>>,
 }
 
 #[derive(Default)]
@@ -166,6 +167,16 @@ impl RuntimeState {
 
     fn is_exiting(&self) -> bool {
         self.is_exiting.load(Ordering::SeqCst)
+    }
+
+    fn set_last_surface(&self, label: String) {
+        if let Ok(mut last) = self.last_surface_label.lock() {
+            *last = Some(label);
+        }
+    }
+
+    fn get_last_surface(&self) -> Option<String> {
+        self.last_surface_label.lock().ok()?.clone()
     }
 }
 
@@ -532,7 +543,7 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error
             config.tile_desktop_only = !config.tile_desktop_only;
             store.save_config(config.clone())?;
             // Immediately apply to all open tile windows
-            apply_to_tile_windows(app, |w| w.set_always_on_top(!config.tile_desktop_only));
+            apply_to_tile_windows(app, |w| { let _ = w.set_always_on_top(!config.tile_desktop_only); });
             let _ = app.emit("config-changed", config);
         }
         Some(TrayMenuAction::ToggleTileClickThrough) => {
@@ -541,7 +552,7 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error
             config.tile_click_through = !config.tile_click_through;
             store.save_config(config.clone())?;
             // Immediately apply to all open tile windows
-            apply_to_tile_windows(app, |w| w.set_ignore_cursor_events(config.tile_click_through));
+            apply_to_tile_windows(app, |w| { let _ = w.set_ignore_cursor_events(config.tile_click_through); });
             let _ = app.emit("config-changed", config);
         }
         Some(TrayMenuAction::ToggleTileAutoScroll) => {
@@ -607,6 +618,7 @@ fn open_notepad_window_now(
 ) -> Result<String, AppError> {
     if note_id.is_none() {
         if let Some(reused) = activate_pooled_notepad(app, bounds) {
+            track_last_surface(app, &reused);
             return Ok(reused);
         }
     }
@@ -618,7 +630,7 @@ fn open_notepad_window_now(
         None => "index.html?view=notepad".to_string(),
     };
 
-    open_or_focus_window(
+    let result = open_or_focus_window(
         app,
         &label,
         WindowOpenOptions {
@@ -631,7 +643,15 @@ fn open_notepad_window_now(
             skip_taskbar: true,
             bounds,
         },
-    )
+    )?;
+    track_last_surface(app, &result);
+    Ok(result)
+}
+
+fn track_last_surface(app: &AppHandle, label: &str) {
+    if let Some(state) = app.try_state::<RuntimeState>() {
+        state.set_last_surface(label.to_string());
+    }
 }
 
 fn activate_pooled_notepad(app: &AppHandle, bounds: Option<WindowBounds>) -> Option<String> {
@@ -746,7 +766,7 @@ fn open_tile_window_now(
 
     let specs = notepad_window_specs();
 
-    open_or_focus_window(
+    let result = open_or_focus_window(
         app,
         &label,
         WindowOpenOptions {
@@ -759,7 +779,9 @@ fn open_tile_window_now(
             skip_taskbar: true,
             bounds,
         },
-    )
+    )?;
+    track_last_surface(app, &result);
+    Ok(result)
 }
 
 fn open_or_focus_window(
@@ -890,8 +912,8 @@ fn setup_global_shortcut_plugin(app: &AppHandle) -> tauri::Result<()> {
                 if event.state() == ShortcutState::Pressed {
                     let app_for_closure = app.clone();
                     if let Err(error) = app.run_on_main_thread(move || {
-                        if let Err(error) = open_notepad_window_now(&app_for_closure, None, None) {
-                            eprintln!("failed to open notepad from global shortcut: {error}");
+                        if let Err(error) = toggle_last_surface(&app_for_closure) {
+                            eprintln!("failed to toggle surface from global shortcut: {error}");
                         }
                     }) {
                         eprintln!("failed to dispatch global shortcut action: {error}");
@@ -900,6 +922,76 @@ fn setup_global_shortcut_plugin(app: &AppHandle) -> tauri::Result<()> {
             })
             .build(),
     )
+}
+
+/// Toggle last opened notepad/tile: hide if visible, restore if hidden/minimized, else open at cursor
+#[cfg(desktop)]
+fn toggle_last_surface(app: &AppHandle) -> Result<(), AppError> {
+    let state = app.try_state::<RuntimeState>().ok_or_else(|| AppError {
+        code: "noState".into(),
+        message: "runtime state not found".into(),
+    })?;
+
+    // If we have a tracked window, try to toggle it
+    if let Some(label) = state.get_last_surface() {
+        if let Some(window) = app.get_webview_window(&label) {
+            let visible = window.is_visible().unwrap_or(false);
+            let minimized = window.is_minimized().unwrap_or(false);
+
+            if minimized {
+                window.unminimize()?;
+                window.show()?;
+                window.set_focus()?;
+                return Ok(());
+            }
+            if visible {
+                return window.hide().map_err(|e| AppError {
+                    code: "hide".into(),
+                    message: e.to_string(),
+                });
+            }
+            // Window exists but is hidden → show it at cursor
+            if let Some(bounds) = cursor_bounds(app)? {
+                let specs = notepad_window_specs();
+                let _ = window.set_size(tauri::LogicalSize::new(specs.width, specs.height));
+                let _ = window.set_position(tauri::PhysicalPosition::new(bounds.x, bounds.y));
+            }
+            window.show()?;
+            window.set_focus()?;
+            return Ok(());
+        }
+    }
+
+    // No tracked window or it was closed → open new at cursor
+    let cursor_bounds = cursor_bounds(app)?;
+    let label = open_notepad_window_now(app, None, cursor_bounds)?;
+    state.set_last_surface(label);
+    Ok(())
+}
+
+/// Get cursor position as WindowBounds for opening a notepad at cursor
+#[cfg(desktop)]
+fn cursor_bounds(app: &AppHandle) -> Result<Option<WindowBounds>, AppError> {
+    // Try main window first, then any window
+    let window = app
+        .get_webview_window("main")
+        .or_else(|| app.webview_windows().values().next().cloned());
+
+    let Some(window) = window else {
+        return Ok(None);
+    };
+
+    let Ok(pos) = window.cursor_position() else {
+        return Ok(None);
+    };
+
+    let specs = notepad_window_specs();
+    Ok(Some(WindowBounds {
+        x: (pos.x as i32).max(0),
+        y: (pos.y as i32).max(0),
+        width: specs.width as u32,
+        height: specs.height as u32,
+    }))
 }
 
 #[cfg(not(desktop))]

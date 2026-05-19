@@ -23,6 +23,25 @@
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
+:root[data-theme="warm"] {
+  --color-paper: #f5f0e1;
+  --color-paper-warm: #eee6d2;
+  --color-paper-deep: #e2d9c0;
+  --color-ink: #2d2a22;
+  --color-ink-soft: #4a463c;
+  --color-ink-faint: #8a8578;
+  --color-ink-ghost: #b5b0a5;
+  --color-bamboo: #3d6b4a;
+  --color-bamboo-light: #4e825c;
+  --color-bamboo-mist: #eaf0e7;
+  --color-bamboo-glow: #dce8d5;
+  --color-stone: #7a7668;
+  --color-cloud: #fdfaf3;
+  --color-shadow: rgba(45, 42, 34, 0.05);
+  --color-shadow-deep: rgba(45, 42, 34, 0.1);
+  --color-danger-bg: #fef2f2;
+}
+
 :root[data-theme="dark"] {
   --color-paper: #222120;
   --color-paper-warm: #2c2a27;

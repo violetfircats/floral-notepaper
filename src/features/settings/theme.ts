@@ -1,6 +1,6 @@
 import type { ThemeOption } from "./types";
 
-function resolveTheme(option: ThemeOption): "light" | "dark" {
+function resolveTheme(option: ThemeOption): "light" | "dark" | "warm" {
   if (option === "system") {
     return window.matchMedia("(prefers-color-scheme: dark)").matches
       ? "dark"
