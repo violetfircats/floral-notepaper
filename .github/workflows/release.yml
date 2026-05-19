@@ -19,7 +19,7 @@ jobs:
     outputs:
       created: ${{ steps.release.outputs.created }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -72,9 +72,9 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
@@ -245,13 +245,13 @@ jobs:
 
   build-macos-x86_64:
     needs: prepare-release
-    runs-on: macos-15-intel
+    runs-on: macos-13
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
@@ -305,9 +305,9 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm

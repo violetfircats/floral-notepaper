@@ -9,9 +9,9 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
@@ -25,13 +25,13 @@ jobs:
         run: npm run tauri build
 
       - name: Upload NSIS installer
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: floral-notepaper-installer
           path: src-tauri/target/release/bundle/nsis/*.exe
 
       - name: Upload portable exe
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: floral-notepaper-portable
           path: src-tauri/target/release/floral-notepaper.exe
